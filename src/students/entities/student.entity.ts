@@ -17,7 +17,7 @@ export class Student extends Document {
   password: string;
 
   @Prop({ required: true, unique: true })
-  registrationNo: string;
+  registrationNumber: string;
 
   @Prop({ required: true, enum: validStandards })
   standard: string;

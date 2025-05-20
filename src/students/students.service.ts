@@ -32,7 +32,10 @@ export class StudentsService {
       password: hashedPassword,
     });
 
-    return newStudent.save();
+    await newStudent.save();
+
+    const { password, ...studentWithoutPassword } = newStudent.toObject();
+    return studentWithoutPassword;
   }
 
   async findAll() {
@@ -48,7 +51,7 @@ export class StudentsService {
   async findOne(id: string) {
     const student = await this.studentModel
       .findOne({ registrationNumber: id })
-      .select('-password');
+      .select('-password' + ' -_id' + ' -__v');
     if (!student) {
       throw new HttpException(
         `Student with registration number ${id} not found`,
