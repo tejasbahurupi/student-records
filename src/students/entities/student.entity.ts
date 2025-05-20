@@ -1,5 +1,9 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import {
+  validSections,
+  validStandards,
+} from 'src/constants/students-constants';
 
 @Schema({ timestamps: true })
 export class Student extends Document {
@@ -15,10 +19,10 @@ export class Student extends Document {
   @Prop({ required: true, unique: true })
   registrationNo: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, enum: validStandards })
   standard: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, enum: validSections })
   section: string;
 }
 

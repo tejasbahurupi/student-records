@@ -10,33 +10,50 @@ import {
 import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('students')
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
-  @Post()
-  create(@Body() createStudentDto: CreateStudentDto) {
-    return this.studentsService.create(createStudentDto);
+  @Get()
+  getHello(): string {
+    return 'Hello, the API is working!';
   }
 
-  @Get()
+  @Post()
+  register(@Body() createStudentDto: CreateStudentDto) {
+    return this.studentsService.register(createStudentDto);
+  }
+
+  @Get('all')
   findAll() {
     return this.studentsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.studentsService.findOne(+id);
+  @Get(':registrationNumber')
+  findOne(@Param('registrationNumber') registrationNumber: string) {
+    return this.studentsService.findOne(registrationNumber);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
-    return this.studentsService.update(+id, updateStudentDto);
+  @Patch(':registrationNumber')
+  update(
+    @Param('registrationNumber') registrationNumber: string,
+    @Body() updateStudentDto: UpdateStudentDto,
+  ) {
+    return this.studentsService.update(registrationNumber, updateStudentDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.studentsService.remove(+id);
+  @Delete(':registrationNumber')
+  remove(@Param('registrationNumber') registrationNumber: string) {
+    return this.studentsService.remove(registrationNumber);
+  }
+
+  @Patch('update-password/:registrationNumber')
+  async updatePassword(
+    @Param('registrationNumber') registrationNumber: string,
+    @Body() dto: UpdatePasswordDto,
+  ) {
+    return this.studentsService.updatePassword(registrationNumber, dto);
   }
 }

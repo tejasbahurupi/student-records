@@ -1,27 +1,28 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Min, MinLength } from 'class-validator';
 
 export class CreateStudentDto {
   @IsNotEmpty()
   @IsString()
-  username: string;
+  readonly username: string;
 
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  readonly email: string;
 
   @IsNotEmpty()
   @IsString()
-  password: string;
+  @MinLength(8)
+  readonly password: string;
 
   @IsNotEmpty()
   @IsString()
-  registrationNo: string;
+  readonly registrationNumber: string;
 
   @IsNotEmpty()
   @IsString()
-  standard: string;
+  readonly standard: string;
 
   @IsNotEmpty()
   @IsString()
-  section: string;
+  readonly section: string;
 }
