@@ -11,14 +11,18 @@ import { StudentsService } from './students.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import {
+  ApiResponse,
+  successResponse,
+} from 'src/shared/helpers/response.helper';
 
 @Controller('students')
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
 
   @Get()
-  getHello(): string {
-    return 'Hello, the API is working!';
+  getHello(): ApiResponse<string> {
+    return successResponse('Hello from Students Controller');
   }
 
   @Post()

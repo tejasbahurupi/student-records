@@ -1,11 +1,17 @@
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Student } from './entities/student.entity';
+import { Student } from './schemas/student.schema';
 import * as bcrypt from 'bcrypt';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { successResponse } from 'src/shared/helpers/response.helper';
 
 @Injectable()
 export class StudentsService {
@@ -19,9 +25,8 @@ export class StudentsService {
     });
 
     if (existingStudent) {
-      throw new HttpException(
+      throw new ConflictException(
         `Student with registration number ${createStudentDto.registrationNumber} already exists`,
-        HttpStatus.CONFLICT,
       );
     }
 
@@ -35,44 +40,46 @@ export class StudentsService {
     await newStudent.save();
 
     const { password, ...studentWithoutPassword } = newStudent.toObject();
-    return studentWithoutPassword;
+    return successResponse(
+      'Student registered successfully',
+      studentWithoutPassword,
+    );
   }
 
   async findAll() {
-    console.log('Fetching all students');
     const students = await this.studentModel.find().select('-password');
 
     if (students.length === 0) {
-      throw new HttpException('No students found', HttpStatus.NOT_FOUND);
+      throw new NotFoundException('No students found');
     }
-    return students;
+
+    return successResponse('Students found', students);
   }
 
   async findOne(id: string) {
     const student = await this.studentModel
       .findOne({ registrationNumber: id })
       .select('-password' + ' -_id' + ' -__v');
+
     if (!student) {
-      throw new HttpException(
+      throw new NotFoundException(
         `Student with registration number ${id} not found`,
-        HttpStatus.NOT_FOUND,
       );
     }
-    return `Student details:\n ${student}`;
+    return successResponse(
+      `Student with registration number ${id} found`,
+      student,
+    );
   }
 
   async update(id: string, updateStudentDto: UpdateStudentDto) {
     if ('registrationNumber' in updateStudentDto) {
-      throw new HttpException(
-        'registration number cannot be updated',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('Registration number cannot be updated');
     }
 
     if ('password' in updateStudentDto) {
-      throw new HttpException(
-        'password cannot be updated using this endpoint',
-        HttpStatus.BAD_REQUEST,
+      throw new BadRequestException(
+        'Password cannot be updated using this endpoint',
       );
     }
 
@@ -80,15 +87,18 @@ export class StudentsService {
       .findOneAndUpdate({ registrationNumber: id }, updateStudentDto, {
         new: true,
       })
-      .select('-password');
+      .select('-password' + ' -_id' + ' -__v');
 
     if (!updatedStudent) {
-      throw new HttpException(
+      throw new NotFoundException(
         `Student with registration number ${id} not found`,
-        HttpStatus.NOT_FOUND,
       );
     }
-    return `Updated student :\n ${updatedStudent}`;
+
+    return successResponse(
+      `Student with registration number ${id} updated successfully`,
+      updatedStudent,
+    );
   }
 
   async remove(id: string) {
@@ -97,36 +107,35 @@ export class StudentsService {
     });
 
     if (!deletedStudent) {
-      throw new HttpException(
+      throw new NotFoundException(
         `Student with registration number ${id} not found`,
-        HttpStatus.NOT_FOUND,
       );
     }
 
-    return `This action removes a #${id} student`;
+    return successResponse(
+      `Student with registration number ${id} deleted successfully`,
+    );
   }
 
   async updatePassword(id: string, dto: UpdatePasswordDto) {
     const student = await this.studentModel.findOne({ registrationNumber: id });
     if (!student) {
-      throw new HttpException(
+      throw new NotFoundException(
         `Student with registration number ${id} not found`,
-        HttpStatus.NOT_FOUND,
       );
     }
 
     const isMatch = await bcrypt.compare(dto.oldPassword, student.password);
     if (!isMatch) {
-      throw new HttpException(
-        'Old password is incorrect',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('Old password is incorrect');
     }
 
     const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
     student.password = hashedPassword;
     await student.save();
 
-    return { message: 'Password updated successfully' };
+    return successResponse(
+      `Password updated successfully for student with registration number ${id}`,
+    );
   }
 }
